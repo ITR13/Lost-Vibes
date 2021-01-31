@@ -8,16 +8,9 @@ namespace LostVibes
 {
     public partial class GameManager : MonoBehaviour
     {
-        [SerializeField] public Camera camera;
-        [SerializeField] public float fromHue, toHue;
 
         partial void AfterUpdate()
         {
-            camera.backgroundColor = Color.HSVToRGB(
-                Mathf.Lerp(fromHue, toHue, _chillTensity),
-                1,
-                0.5f
-            );
         }
 
         private void OnGUI()

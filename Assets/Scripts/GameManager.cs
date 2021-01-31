@@ -1,16 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LostVibes
 {
     public partial class GameManager : MonoBehaviour
     {
+        [SerializeField] public Camera camera;
+        [SerializeField] public float fromHue, toHue;
+
         [SerializeField] private float boundVelocity;
         [SerializeField] private float boundRange;
         [SerializeField] private float falloffPerSecond;
         [SerializeField] private SpriteSlider spriteSlider;
 
+        [SerializeField] private Button[] buttons;
+        [SerializeField] private Button silenceButton;
 
         private float _chillTensity = 0.5f;
         private float _ctVelocity = 0.0f;
@@ -81,10 +87,44 @@ namespace LostVibes
 
         private Dictionary<string, float> _vibeInfluence = new Dictionary<string, float>();
 
+        private void Start()
+        {
+            for (var i = 0; i < buttons.Length; i++)
+            {
+                var j = i;
+                buttons[i].GetComponentInChildren<Text>().text = _vibes[i].Name;
+                buttons[i].onClick.AddListener(() => ExecuteVibe(_vibes[j]));
+            }
+
+            silenceButton.onClick.AddListener(() =>
+                {
+                    _vibeCooldown = 1;
+                    _ctBias *= 0.7f;
+                    foreach (var key in _vibeInfluence.Keys.ToArray())
+                    {
+                        _vibeInfluence[key] = Mathf.MoveTowards(_vibeInfluence[key], 1, 0.3f);
+                    }
+                }
+            );
+        }
+
         private void Update()
         {
-            AfterUpdate();
+            camera.backgroundColor = Color.HSVToRGB(
+                Mathf.Lerp(fromHue, toHue, _chillTensity),
+                1,
+                0.5f
+            );
+
             spriteSlider.SetMarkerPosition(_chillTensity);
+            foreach (var button in buttons)
+            {
+                button.interactable = _vibeCooldown <= 0;
+            }
+
+            silenceButton.interactable = _vibeCooldown <= 0;
+
+            AfterUpdate();
         }
 
         private void FixedUpdate()
